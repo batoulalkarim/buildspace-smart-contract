@@ -1,8 +1,29 @@
 const main = async () => {
-    const waveContractFactory = await hre.ethers.getContractFactory("WavePortal");
-    const waveContract = await waveContractFactory.deploy();
-    await waveContract.deployed();
-    console.log("Contract deployed to:", waveContract.address);
+//this line of code is grabbing the owner of the wallet address and a random wallet address
+    const [owner, randomPerson] = await hre.ethers.getSigners();
+    const jokeContractFactory = await hre.ethers.getContractFactory("JokePortal");
+    const jokeContract = await jokeContractFactory.deploy();
+    await jokeContract.deployed();
+
+
+    console.log("Contract deployed to:", jokeContract.address);
+    console.log("Contract deployed by:", owner.address);
+//the code below is calling our functions from our jokeportal, first we call the function to grab
+//#of total jokes. then do the joke, then grab the joke count one more time to see if it changed
+    let jokeCount;
+    jokeCount = await jokeContract.getTotalJokes();
+
+    let jokeTxn = await jokeContract.joke();
+    await jokeTxn.wait();
+
+    jokeCount = await jokeContract.getTotalJokes();
+//now we're going to add the randomPerson because without these next few lines, were basically just waving to ourselves
+// and thats lame 
+    jokeTxn = await jokeContract.connect(randomPerson).joke();
+    await jokeTxn.wait();
+
+    jokeCount = await jokeContract.getTotalJokes();
+
 }
 
 const runMain = async () => {
@@ -19,13 +40,13 @@ const runMain = async () => {
 runMain();
 
 //whats happening in this file?
-//  1) const waveContractFactory is what will compile our contract and generate the necessary 
+//  1) const jokeContractFactory is what will compile our contract and generate the necessary 
 //      files we need to work with our contract under the artifacts directory
-//  2) const waveContract- harhat will create a local eth network for us but just for this contract
+//  2) const jokeContract- harhat will create a local eth network for us but just for this contract
 //      after script completes it destroys that local network. Everytime you run the contract itll be a fresh blockchain. Its kind of like refreshing your 
 //      local server everytime so debugging is easier
-//  3) await waveContract- were waiting until contract is officially deployed, our constructor runs when we actually deploy
-//  4) finally once its deployed waveContract.address will give us the address of the deployed contract. 
+//  3) await jokeContract- were waiting until contract is officially deployed, our constructor runs when we actually deploy
+//  4) finally once its deployed jokeContract.address will give us the address of the deployed contract. 
 //      this address is how we'll find our smart contract onthe blockchain
 // Now we run the contract by entering this in terminal: npx hardhat run scripts/run.js
 
